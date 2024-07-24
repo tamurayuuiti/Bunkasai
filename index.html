@@ -312,8 +312,12 @@
             <canvas id="value-pie-chart"></canvas>
         </div>
     </div>
-    <script>
-        // Wait for the DOM to be fully loaded
+    <!-- Use type="module" for ES6 module support -->
+    <script type="module">
+        // Import the necessary Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, child, update, get } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
         document.addEventListener('DOMContentLoaded', function() {
             // Firebase configuration using the provided credentials
             const firebaseConfig = {
@@ -327,16 +331,16 @@
             };
 
             // Initialize Firebase
-            const app = firebase.initializeApp(firebaseConfig);
-            const database = firebase.database(app);
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
 
             // Initialize the counters
-            const countersRef = database.ref('counters');
+            const countersRef = ref(database, 'counters');
 
             // Set up default values if they don't exist
-            countersRef.once('value').then(snapshot => {
+            get(countersRef).then(snapshot => {
                 if (!snapshot.exists()) {
-                    countersRef.set({
+                    set(countersRef, {
                         day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
                         day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
                     });
@@ -371,16 +375,18 @@
 
             // Function to handle counter changes
             function changeCount(type, delta) {
-                countersRef.child(`${currentDay}/${type}`).transaction(count => {
-                    if ((count || 0) + delta >= 0 && (count || 0) + delta <= limits[currentDay][type]) {
-                        return (count || 0) + delta;
+                const currentCountRef = child(countersRef, `${currentDay}/${type}`);
+                get(currentCountRef).then(snapshot => {
+                    const count = snapshot.val() || 0;
+                    const newCount = count + delta;
+                    if (newCount >= 0 && newCount <= limits[currentDay][type]) {
+                        update(currentCountRef, { [type]: newCount });
                     }
-                    return count;
                 });
             }
 
             // Fetch and update the UI in real-time
-            countersRef.child(currentDay).on('value', snapshot => {
+            onValue(child(countersRef, currentDay), snapshot => {
                 if (snapshot.exists()) {
                     updateUI(snapshot.val());
                 }
@@ -453,12 +459,12 @@
             function confirmDayChange(selectedDay) {
                 currentDay = selectedDay === '1' ? 'day1' : 'day2';
                 document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
-                countersRef.child(currentDay).once('value').then(snapshot => {
+                get(child(countersRef, currentDay)).then(snapshot => {
                     updateUI(snapshot.val());
                 });
 
                 // Update real-time listener
-                countersRef.child(currentDay).on('value', snapshot => {
+                onValue(child(countersRef, currentDay), snapshot => {
                     if (snapshot.exists()) {
                         updateUI(snapshot.val());
                     }
@@ -469,7 +475,7 @@
             function resetCounters(day) {
                 const confirmation = confirm(`${day === 'day1' ? '1日目' : '2日目'}のカウンターをリセットしてもよろしいですか？`);
                 if (confirmation) {
-                    countersRef.child(day).set({ plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
+                    set(child(countersRef, day), { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
                 }
             }
 
