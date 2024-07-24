@@ -217,9 +217,9 @@
         }
     </style>
     <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
     <!-- Firebase Realtime Database -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
     <!-- Include Chart.js and the data labels plugin from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -313,7 +313,7 @@
         </div>
     </div>
     <script>
-        // Your Firebase configuration (replace this with your actual config)
+        // Firebase configuration using the provided credentials
         const firebaseConfig = {
             apiKey: "AIzaSyDfmjWjPl786cVBXzqlsiZsS4MUFbwrNNM",
             authDomain: "school-festival-e4c8d.firebaseapp.com",
@@ -326,7 +326,7 @@
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const database = firebase.database(app);
 
         // Initialize the counters
         const countersRef = database.ref('counters');
@@ -445,11 +445,18 @@
             countersRef.child(currentDay).once('value').then(snapshot => {
                 updateUI(snapshot.val());
             });
+
+            // Update real-time listener
+            countersRef.child(currentDay).on('value', snapshot => {
+                if (snapshot.exists()) {
+                    updateUI(snapshot.val());
+                }
+            });
         }
 
         // Reset counters
         function resetCounters(day) {
-            const confirmation = confirm(`${day}日目のカウンターをリセットしてもよろしいですか？`);
+            const confirmation = confirm(`${day === 'day1' ? '1日目' : '2日目'}のカウンターをリセットしてもよろしいですか？`);
             if (confirmation) {
                 countersRef.child(day).set({ plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
             }
