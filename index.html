@@ -217,9 +217,9 @@
         }
     </style>
     <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <!-- Firebase Realtime Database -->
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <!-- Include Chart.js and the data labels plugin from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -312,12 +312,7 @@
             <canvas id="value-pie-chart"></canvas>
         </div>
     </div>
-    <!-- Use type="module" for ES6 module support -->
-    <script type="module">
-        // Import the necessary Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, child, update, get } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Firebase configuration using the provided credentials
             const firebaseConfig = {
@@ -331,16 +326,16 @@
             };
 
             // Initialize Firebase
-            const app = initializeApp(firebaseConfig);
-            const database = getDatabase(app);
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
 
             // Initialize the counters
-            const countersRef = ref(database, 'counters');
+            const countersRef = database.ref('counters');
 
             // Set up default values if they don't exist
-            get(countersRef).then(snapshot => {
+            countersRef.once('value').then(snapshot => {
                 if (!snapshot.exists()) {
-                    set(countersRef, {
+                    countersRef.set({
                         day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
                         day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
                     });
@@ -375,18 +370,17 @@
 
             // Function to handle counter changes
             function changeCount(type, delta) {
-                const currentCountRef = child(countersRef, `${currentDay}/${type}`);
-                get(currentCountRef).then(snapshot => {
-                    const count = snapshot.val() || 0;
-                    const newCount = count + delta;
-                    if (newCount >= 0 && newCount <= limits[currentDay][type]) {
-                        update(currentCountRef, { [type]: newCount });
+                const currentCountRef = countersRef.child(`${currentDay}/${type}`);
+                currentCountRef.transaction(count => {
+                    if ((count || 0) + delta >= 0 && (count || 0) + delta <= limits[currentDay][type]) {
+                        return (count || 0) + delta;
                     }
+                    return count;
                 });
             }
 
             // Fetch and update the UI in real-time
-            onValue(child(countersRef, currentDay), snapshot => {
+            countersRef.child(currentDay).on('value', snapshot => {
                 if (snapshot.exists()) {
                     updateUI(snapshot.val());
                 }
@@ -459,12 +453,12 @@
             function confirmDayChange(selectedDay) {
                 currentDay = selectedDay === '1' ? 'day1' : 'day2';
                 document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
-                get(child(countersRef, currentDay)).then(snapshot => {
+                countersRef.child(currentDay).once('value').then(snapshot => {
                     updateUI(snapshot.val());
                 });
 
                 // Update real-time listener
-                onValue(child(countersRef, currentDay), snapshot => {
+                countersRef.child(currentDay).on('value', snapshot => {
                     if (snapshot.exists()) {
                         updateUI(snapshot.val());
                     }
@@ -475,7 +469,7 @@
             function resetCounters(day) {
                 const confirmation = confirm(`${day === 'day1' ? '1日目' : '2日目'}のカウンターをリセットしてもよろしいですか？`);
                 if (confirmation) {
-                    set(child(countersRef, day), { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
+                    countersRef.child(day).set({ plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
                 }
             }
 
