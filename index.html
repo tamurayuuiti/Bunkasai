@@ -258,116 +258,199 @@
             </div>
         </div>
         <div class="totals-container">
-            <div class="total-title">総合計:</div>
-            <div class="total-value" id="total-amount">0 円</div>
+            <div class="total-title">合計</div>
+            <div class="total-value" id="total-count">総数量: 0 個</div>
+            <div class="total-value" id="total-amount">総金額: 0 円</div>
         </div>
     </div>
     <div class="charts-section">
-        <div class="chart-container" id="pie-chart-container">
-            <canvas id="pie-chart"></canvas>
+        <div class="chart-container">
+            <canvas id="count-pie-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="value-pie-chart"></canvas>
         </div>
     </div>
-
     <script>
-        // Firebaseの設定
-        var firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        firebase.initializeApp(firebaseConfig);
-
-        // データベースリファレンスの設定
-        var database = firebase.database();
-        var countersRef = database.ref('counters');
-        var limits = {
-            1: { plain: 30, choco: 100, strawberry: 100, matcha: 50, jdk: 20 },
-            2: { plain: 40, choco: 120, strawberry: 120, matcha: 60, jdk: 30 }
-        };
-        var values = { plain: 100, choco: 150, strawberry: 200, matcha: 250, jdk: 300 };
-        var currentDay = 1;
-
-        function confirmDayChange(newDay) {
-            if (confirm('日付を変更しますか？')) {
-                currentDay = parseInt(newDay);
-                document.getElementById('current-day').innerText = `現在の設定: ${currentDay}日目`;
-                updateUI();
-            } else {
-                // 元のラジオボタンの状態に戻す
-                document.querySelector(`input[name="day"][value="${currentDay}"]`).checked = true;
-            }
-        }
-
-        function changeCount(type, delta) {
-            var counterRef = countersRef.child(currentDay).child(type);
-            counterRef.transaction(function(current) {
-                if (current === null) {
-                    return delta > 0 ? 1 : 0;
-                } else {
-                    var newValue = current + delta;
-                    if (newValue < 0) return 0;
-                    if (newValue > limits[currentDay][type]) return limits[currentDay][type];
-                    return newValue;
-                }
-            });
-        }
-
-        function updateUI(counters) {
-            for (let type in counters) {
-                let countValue = counters[type] || 0; // カウンターの値を取得
-                document.getElementById(`${type}-count`).innerText = `${countValue}/${limits[currentDay][type]}`;
-                document.getElementById(`${type}-amount`).innerText = `${countValue * values[type]} 円`;
-            }
-            updateTotals(counters);
-            updatePieCharts(counters);
-        }
-
-        function updateTotals(counters) {
-            let total = Object.keys(counters).reduce((sum, type) => sum + counters[type] * values[type], 0);
-            document.getElementById('total-amount').innerText = `${total} 円`;
-        }
-
-        function updatePieCharts(counters) {
-            const ctx = document.getElementById('pie-chart').getContext('2d');
-            const chartData = {
-                labels: Object.keys(counters),
-                datasets: [{
-                    data: Object.values(counters).map(c => c * values[counters.indexOf(c)]),
-                    backgroundColor: ['#007BFF', '#8B4513', '#FF6347', '#3CB371', '#FFD700']
-                }]
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase configuration using the provided credentials
+            const firebaseConfig = {
+                apiKey: "AIzaSyDfmjWjPl786cVBXzqlsiZsS4MUFbwrNNM",
+                authDomain: "school-festival-e4c8d.firebaseapp.com",
+                databaseURL: "https://school-festival-e4c8d-default-rtdb.firebaseio.com",
+                projectId: "school-festival-e4c8d",
+                storageBucket: "school-festival-e4c8d.appspot.com",
+                messagingSenderId: "658868728855",
+                appId: "1:658868728855:web:8d7497c6838f5a42d21852"
             };
 
-            if (window.pieChart) {
-                window.pieChart.data = chartData;
-                window.pieChart.update();
-            } else {
-                window.pieChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            datalabels: {
-                                color: '#fff',
-                                formatter: (value) => `${value} 円`
-                            }
-                        }
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+
+            // Initialize the counters
+            const countersRef = database.ref('counters');
+
+            // Set up default values if they don't exist
+            countersRef.once('value').then(snapshot => {
+                if (!snapshot.exists()) {
+                    countersRef.set({
+                        day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
+                        day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
+                    });
+                }
+            });
+
+            // Variables to hold current day and counter values
+            let currentDay = 'day1';
+            const limits = {
+                day1: { plain: 30, choco: 100, strawberry: 100, matcha: 50, jdk: 20 },
+                day2: { plain: 30, choco: 150, strawberry: 150, matcha: 40, jdk: 30 }
+            };
+
+            // Monetary values for each type
+            const values = {
+                plain: 100,
+                choco: 100,
+                strawberry: 100,
+                matcha: 100,
+                jdk: 200
+            };
+
+            // Function to update UI with counter values
+            function updateUI(counters) {
+                for (let type in counters) {
+                    document.getElementById(`${type}-count`).innerText = `${counters[type] || 0}/${limits[currentDay][type]}`;
+                    document.getElementById(`${type}-amount`).innerText = `${(counters[type] || 0) * values[type]} 円`;
+                }
+                updateTotals(counters);
+                updatePieCharts(counters);
+            }
+
+            // Function to handle counter changes
+            function changeCount(type, delta) {
+                const currentCountRef = countersRef.child(`${currentDay}/${type}`);
+                currentCountRef.transaction(count => {
+                    const newCount = (count || 0) + delta;
+                    if (newCount >= 0 && newCount <= limits[currentDay][type]) {
+                        return newCount;
+                    }
+                    return count; // Return the same count if the operation is invalid
+                });
+            }
+
+            // Fetch and update the UI in real-time
+            function updateRealTimeListener() {
+                countersRef.child(currentDay).on('value', snapshot => {
+                    if (snapshot.exists()) {
+                        updateUI(snapshot.val());
                     }
                 });
             }
-        }
 
-        // 初期データの読み込み
-        countersRef.child(currentDay).on('value', snapshot => {
-            if (snapshot.exists()) {
-                updateUI(snapshot.val());
+            // Initialize real-time listener for day one by default
+            updateRealTimeListener();
+
+            // Function to update total amounts
+            function updateTotals(counters) {
+                const totalCount = Object.values(counters).reduce((sum, count) => sum + (count || 0), 0);
+                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((count || 0) * values[key]), 0);
+
+                document.getElementById('total-count').innerText = `総数量: ${totalCount} 個`;
+                document.getElementById('total-amount').innerText = `総金額: ${totalAmount} 円`;
             }
-        });
 
+            // Function to create pie charts
+            function createPieChart(canvasId, title, backgroundColors, unit) {
+                return new Chart(document.getElementById(canvasId).getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['プレーン', 'チョコ', 'いちご', '抹茶', 'JDK'],
+                        datasets: [{
+                            data: [0, 0, 0, 0, 0],
+                            backgroundColor: backgroundColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            title: {
+                                display: true,
+                                text: title
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                formatter: (value, context) => {
+                                    if (value > 0) {
+                                        return `${context.chart.data.labels[context.dataIndex]}: ${value}${unit}`;
+                                    } else {
+                                        return '';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            }
+
+            // Initialize pie charts
+            let countPieChart = createPieChart('count-pie-chart', '数量の分布', ['#007BFF', '#8B4513', '#FF6347', '#3CB371', '#FFD700'], '個');
+            let valuePieChart = createPieChart('value-pie-chart', '金額の分布', ['#007BFF', '#8B4513', '#FF6347', '#3CB371', '#FFD700'], '円');
+
+            // Update pie charts
+            function updatePieCharts(counters) {
+                const countData = [
+                    counters.plain || 0, 
+                    counters.choco || 0, 
+                    counters.strawberry || 0, 
+                    counters.matcha || 0, 
+                    counters.jdk || 0
+                ];
+                const valueData = [
+                    (counters.plain || 0) * values.plain, 
+                    (counters.choco || 0) * values.choco, 
+                    (counters.strawberry || 0) * values.strawberry, 
+                    (counters.matcha || 0) * values.matcha, 
+                    (counters.jdk || 0) * values.jdk
+                ];
+
+                countPieChart.data.datasets[0].data = countData;
+                countPieChart.update();
+
+                valuePieChart.data.datasets[0].data = valueData;
+                valuePieChart.update();
+            }
+
+            // Handle day change
+            function confirmDayChange(selectedDay) {
+                // Remove the previous listener
+                countersRef.child(currentDay).off('value');
+
+                // Set the current day
+                currentDay = selectedDay === '1' ? 'day1' : 'day2';
+                document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
+
+                // Fetch and update the UI for the new day
+                countersRef.child(currentDay).once('value').then(snapshot => {
+                    updateUI(snapshot.val() || {});
+                });
+
+                // Set up the real-time listener for the new day
+                updateRealTimeListener();
+            }
+
+            // Attach changeCount and confirmDayChange functions to window for button onclick access
+            window.changeCount = changeCount;
+            window.confirmDayChange = confirmDayChange;
+
+            // Check Firebase initialization and log
+            console.log('Firebase initialized with project:', firebaseConfig.projectId);
+        });
     </script>
 </body>
 </html>
