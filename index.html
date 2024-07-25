@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイムカウンター</title>
     <style>
         body {
@@ -319,9 +319,11 @@
 
             // Function to update UI with counter values
             function updateUI(counters) {
+                console.log('Updating UI with counters:', counters); // Debugging output
                 for (let type in counters) {
-                    document.getElementById(`${type}-count`).innerText = `${counters[type] || 0}/${limits[currentDay][type]}`;
-                    document.getElementById(`${type}-amount`).innerText = `${(counters[type] || 0) * values[type]} 円`;
+                    const count = counters[type] || 0;
+                    document.getElementById(`${type}-count`).innerText = `${count}/${limits[currentDay][type]}`;
+                    document.getElementById(`${type}-amount`).innerText = `${count * values[type]} 円`;
                 }
                 updateTotals(counters);
                 updatePieCharts(counters);
@@ -336,14 +338,26 @@
                         return newCount;
                     }
                     return count; // Return the same count if the operation is invalid
+                }, (error, committed, snapshot) => {
+                    if (error) {
+                        console.error('Transaction failed:', error);
+                    } else if (!committed) {
+                        console.warn('Transaction not committed');
+                    } else {
+                        console.log('Transaction committed:', snapshot.val());
+                        updateUI(snapshot.val());
+                    }
                 });
             }
 
             // Function to fetch and update the UI in real-time
             function updateRealTimeListener() {
                 countersRef.child(currentDay).on('value', snapshot => {
+                    console.log('Real-time update for', currentDay, ':', snapshot.val()); // Debugging output
                     if (snapshot.exists()) {
                         updateUI(snapshot.val());
+                    } else {
+                        updateUI({ plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
                     }
                 });
             }
@@ -425,7 +439,7 @@
 
                 // Fetch and update the UI for the new day
                 countersRef.child(currentDay).once('value').then(snapshot => {
-                    updateUI(snapshot.val() || {});
+                    updateUI(snapshot.val() || { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
                 });
 
                 // Set up the real-time listener for the new day
