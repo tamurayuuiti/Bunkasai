@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイムカウンター</title>
     <style>
         body {
@@ -202,7 +202,7 @@
 <body>
     <div class="day-select">
         <label>
-            <input type="radio" name="day" value="1" onchange="confirmDayChange(this.value)" checked> 1日目
+            <input type="radio" name="day" value="1" onchange="confirmDayChange(this.value)"> 1日目
         </label>
         <label>
             <input type="radio" name="day" value="2" onchange="confirmDayChange(this.value)"> 2日目
@@ -339,7 +339,7 @@
                 });
             }
 
-            // Function to fetch and update the UI in real-time
+            // Fetch and update the UI in real-time
             function updateRealTimeListener() {
                 countersRef.child(currentDay).on('value', snapshot => {
                     if (snapshot.exists()) {
@@ -442,3 +442,4 @@
     </script>
 </body>
 </html>
+
