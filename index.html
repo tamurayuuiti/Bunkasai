@@ -319,9 +319,12 @@
 
             // Function to update UI with counter values
             function updateUI(counters) {
+                if (!counters) return;
                 for (let type in counters) {
-                    document.getElementById(`${type}-count`).innerText = `${counters[type] || 0}/${limits[currentDay][type]}`;
-                    document.getElementById(`${type}-amount`).innerText = `${(counters[type] || 0) * values[type]} 円`;
+                    // Ensure counters[type] is a number
+                    const count = parseInt(counters[type], 10) || 0;
+                    document.getElementById(`${type}-count`).innerText = `${count}/${limits[currentDay][type]}`;
+                    document.getElementById(`${type}-amount`).innerText = `${count * values[type]} 円`;
                 }
                 updateTotals(counters);
                 updatePieCharts(counters);
@@ -331,7 +334,7 @@
             function changeCount(type, delta) {
                 const currentCountRef = countersRef.child(`${currentDay}/${type}`);
                 currentCountRef.transaction(count => {
-                    const newCount = (count || 0) + delta;
+                    const newCount = (parseInt(count, 10) || 0) + delta; // Parse the count as integer
                     if (newCount >= 0 && newCount <= limits[currentDay][type]) {
                         return newCount;
                     }
@@ -353,8 +356,8 @@
 
             // Function to update total amounts
             function updateTotals(counters) {
-                const totalCount = Object.values(counters).reduce((sum, count) => sum + (count || 0), 0);
-                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((count || 0) * values[key]), 0);
+                const totalCount = Object.values(counters).reduce((sum, count) => sum + (parseInt(count, 10) || 0), 0);
+                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((parseInt(count, 10) || 0) * values[key]), 0);
 
                 document.getElementById('total-count').innerText = `総数量: ${totalCount} 個`;
                 document.getElementById('total-amount').innerText = `総金額: ${totalAmount} 円`;
@@ -405,18 +408,18 @@
             // Update pie charts
             function updatePieCharts(counters) {
                 const countData = [
-                    counters.plain || 0, 
-                    counters.choco || 0, 
-                    counters.strawberry || 0, 
-                    counters.matcha || 0, 
-                    counters.jdk || 0
+                    parseInt(counters.plain, 10) || 0, 
+                    parseInt(counters.choco, 10) || 0, 
+                    parseInt(counters.strawberry, 10) || 0, 
+                    parseInt(counters.matcha, 10) || 0, 
+                    parseInt(counters.jdk, 10) || 0
                 ];
                 const valueData = [
-                    (counters.plain || 0) * values.plain, 
-                    (counters.choco || 0) * values.choco, 
-                    (counters.strawberry || 0) * values.strawberry, 
-                    (counters.matcha || 0) * values.matcha, 
-                    (counters.jdk || 0) * values.jdk
+                    (parseInt(counters.plain, 10) || 0) * values.plain, 
+                    (parseInt(counters.choco, 10) || 0) * values.choco, 
+                    (parseInt(counters.strawberry, 10) || 0) * values.strawberry, 
+                    (parseInt(counters.matcha, 10) || 0) * values.matcha, 
+                    (parseInt(counters.jdk, 10) || 0) * values.jdk
                 ];
 
                 countPieChart.data.datasets[0].data = countData;
