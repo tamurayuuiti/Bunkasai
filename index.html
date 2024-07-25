@@ -291,9 +291,9 @@
             // Initialize the counters
             const countersRef = database.ref('counters');
 
-            // Set up default values if they don't exist
+            // Ensure the initial state for both days
             countersRef.once('value').then(snapshot => {
-                if (!snapshot.exists()) {
+                if (!snapshot.exists() || !snapshot.val().day1 || !snapshot.val().day2) {
                     countersRef.set({
                         day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
                         day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
@@ -334,7 +334,7 @@
                 const currentCountRef = countersRef.child(`${currentDay}/${type}`);
                 currentCountRef.transaction(count => {
                     const newCount = (count || 0) + delta;
-                    console.log('Transaction:', type, newCount);
+                    console.log('Transaction:', type, newCount, 'Limit:', limits[currentDay][type]); // Debugging output
                     if (newCount >= 0 && newCount <= limits[currentDay][type]) {
                         return newCount;
                     }
@@ -346,7 +346,6 @@
                         console.warn('Transaction not committed');
                     } else {
                         console.log('Transaction committed:', snapshot.val());
-                        updateUI(snapshot.val());
                     }
                 });
             }
