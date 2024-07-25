@@ -19,9 +19,36 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        .dark-mode {
-            background-color: #222;
-            color: #ddd;
+        /* Dark Mode Styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: #ffffff;
+            }
+
+            .counter-container {
+                background: #1e1e1e;
+                color: #ffffff;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+            }
+
+            .totals-container {
+                background-color: #1e1e1e;
+                color: #ffffff;
+            }
+
+            button {
+                background-color: #2d88ff;
+                color: #ffffff;
+            }
+
+            button:hover {
+                background-color: #256cbb;
+            }
+
+            .chart-container {
+                background: #1e1e1e;
+            }
         }
 
         .counters-section {
