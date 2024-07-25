@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,6 +48,11 @@
             padding: 15px;
             text-align: center;
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 200px;
         }
 
         .counter-container:hover {
@@ -60,6 +66,7 @@
 
         .amount {
             font-size: 1em;
+            margin-bottom: 10px;
         }
 
         .button-group {
@@ -70,8 +77,8 @@
         }
 
         button {
-            padding: 14px 24px; /* Increased button size */
-            font-size: 20px; /* Increased font size */
+            padding: 14px 24px;
+            font-size: 20px;
             border: none;
             border-radius: 8px;
             background-color: #007BFF;
@@ -81,7 +88,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            touch-action: manipulation; /* Better support for touch devices */
+            touch-action: manipulation;
         }
 
         button:hover {
@@ -199,6 +206,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
+
 <body>
     <div class="day-select">
         <label>
@@ -272,7 +280,7 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Firebase configuration using the provided credentials
             const firebaseConfig = {
                 apiKey: "AIzaSyDfmjWjPl786cVBXzqlsiZsS4MUFbwrNNM",
@@ -404,8 +412,14 @@
 
             // Update pie charts
             function updatePieCharts(counters) {
-                const countData = Object.values(counters).map(count => count || 0);
-                const valueData = Object.entries(counters).map(([key, count]) => (count || 0) * values[key]);
+                const countData = [counters.plain || 0, counters.choco || 0, counters.strawberry || 0, counters.matcha || 0, counters.jdk || 0];
+                const valueData = [
+                    (counters.plain || 0) * values.plain,
+                    (counters.choco || 0) * values.choco,
+                    (counters.strawberry || 0) * values.strawberry,
+                    (counters.matcha || 0) * values.matcha,
+                    (counters.jdk || 0) * values.jdk
+                ];
 
                 countPieChart.data.datasets[0].data = countData;
                 countPieChart.update();
@@ -441,5 +455,5 @@
         });
     </script>
 </body>
-</html>
 
+</html>
