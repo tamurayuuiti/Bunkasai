@@ -159,31 +159,6 @@
             justify-content: center;
         }
 
-        .reset-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            background-color: #DC3545;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            display: none; /* Initially hidden */
-        }
-
-        .reset-button.show {
-            display: inline-block; /* Show when active */
-        }
-
-        .reset-button:hover {
-            background-color: #C82333;
-        }
-
-        .reset-button:active {
-            transform: scale(0.95);
-        }
-
         @media (max-width: 768px) {
             #counters {
                 grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -244,9 +219,6 @@
                     <button onclick="changeCount('plain', 1)" class="icon-plus"></button>
                     <button onclick="changeCount('plain', -1)" class="icon-minus"></button>
                 </div>
-                <div class="limit-select">
-                    上限: <span id="plain-limit">30</span>
-                </div>
             </div>
             <div class="counter-container" id="choco-counter" style="border-top: 5px solid #8B4513;">
                 <h2>チョコ</h2>
@@ -255,9 +227,6 @@
                 <div class="button-group">
                     <button onclick="changeCount('choco', 1)" class="icon-plus"></button>
                     <button onclick="changeCount('choco', -1)" class="icon-minus"></button>
-                </div>
-                <div class="limit-select">
-                    上限: <span id="choco-limit">100</span>
                 </div>
             </div>
             <div class="counter-container" id="strawberry-counter" style="border-top: 5px solid #FF6347;">
@@ -268,9 +237,6 @@
                     <button onclick="changeCount('strawberry', 1)" class="icon-plus"></button>
                     <button onclick="changeCount('strawberry', -1)" class="icon-minus"></button>
                 </div>
-                <div class="limit-select">
-                    上限: <span id="strawberry-limit">100</span>
-                </div>
             </div>
             <div class="counter-container" id="matcha-counter" style="border-top: 5px solid #3CB371;">
                 <h2>抹茶</h2>
@@ -279,9 +245,6 @@
                 <div class="button-group">
                     <button onclick="changeCount('matcha', 1)" class="icon-plus"></button>
                     <button onclick="changeCount('matcha', -1)" class="icon-minus"></button>
-                </div>
-                <div class="limit-select">
-                    上限: <span id="matcha-limit">50</span>
                 </div>
             </div>
             <div class="counter-container" id="jdk-counter" style="border-top: 5px solid #FFD700;">
@@ -292,12 +255,8 @@
                     <button onclick="changeCount('jdk', 1)" class="icon-plus"></button>
                     <button onclick="changeCount('jdk', -1)" class="icon-minus"></button>
                 </div>
-                <div class="limit-select">
-                    上限: <span id="jdk-limit">20</span>
-                </div>
             </div>
         </div>
-        <button id="reset-button" class="reset-button" onclick="resetCounters(currentDay)">リセット</button>
         <div class="totals-container">
             <div class="total-title">合計</div>
             <div class="total-value" id="total-count">総数量: 0 個</div>
@@ -361,8 +320,8 @@
             // Function to update UI with counter values
             function updateUI(counters) {
                 for (let type in counters) {
-                    document.getElementById(`${type}-count`).innerText = `${counters[type]}/${limits[currentDay][type]}`;
-                    document.getElementById(`${type}-amount`).innerText = `${counters[type] * values[type]} 円`;
+                    document.getElementById(`${type}-count`).innerText = `${counters[type] || 0}/${limits[currentDay][type]}`;
+                    document.getElementById(`${type}-amount`).innerText = `${(counters[type] || 0) * values[type]} 円`;
                 }
                 updateTotals(counters);
                 updatePieCharts(counters);
@@ -372,24 +331,30 @@
             function changeCount(type, delta) {
                 const currentCountRef = countersRef.child(`${currentDay}/${type}`);
                 currentCountRef.transaction(count => {
-                    if ((count || 0) + delta >= 0 && (count || 0) + delta <= limits[currentDay][type]) {
-                        return (count || 0) + delta;
+                    const newCount = (count || 0) + delta;
+                    if (newCount >= 0 && newCount <= limits[currentDay][type]) {
+                        return newCount;
                     }
-                    return count;
+                    return count; // Return the same count if the operation is invalid
                 });
             }
 
             // Fetch and update the UI in real-time
-            countersRef.child(currentDay).on('value', snapshot => {
-                if (snapshot.exists()) {
-                    updateUI(snapshot.val());
-                }
-            });
+            function updateRealTimeListener() {
+                countersRef.child(currentDay).on('value', snapshot => {
+                    if (snapshot.exists()) {
+                        updateUI(snapshot.val());
+                    }
+                });
+            }
+
+            // Initialize real-time listener for day one by default
+            updateRealTimeListener();
 
             // Function to update total amounts
             function updateTotals(counters) {
-                const totalCount = Object.values(counters).reduce((sum, count) => sum + count, 0);
-                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + (count * values[key]), 0);
+                const totalCount = Object.values(counters).reduce((sum, count) => sum + (count || 0), 0);
+                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((count || 0) * values[key]), 0);
 
                 document.getElementById('total-count').innerText = `総数量: ${totalCount} 個`;
                 document.getElementById('total-amount').innerText = `総金額: ${totalAmount} 円`;
@@ -439,8 +404,8 @@
 
             // Update pie charts
             function updatePieCharts(counters) {
-                const countData = Object.values(counters);
-                const valueData = Object.entries(counters).map(([key, count]) => count * values[key]);
+                const countData = Object.values(counters).map(count => count || 0);
+                const valueData = Object.entries(counters).map(([key, count]) => (count || 0) * values[key]);
 
                 countPieChart.data.datasets[0].data = countData;
                 countPieChart.update();
@@ -451,34 +416,25 @@
 
             // Handle day change
             function confirmDayChange(selectedDay) {
+                // Remove the previous listener
+                countersRef.child(currentDay).off('value');
+
+                // Set the current day
                 currentDay = selectedDay === '1' ? 'day1' : 'day2';
                 document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
+
+                // Fetch and update the UI for the new day
                 countersRef.child(currentDay).once('value').then(snapshot => {
-                    updateUI(snapshot.val());
+                    updateUI(snapshot.val() || {});
                 });
 
-                // Update real-time listener
-                countersRef.child(currentDay).on('value', snapshot => {
-                    if (snapshot.exists()) {
-                        updateUI(snapshot.val());
-                    }
-                });
-            }
-
-            // Reset counters
-            function resetCounters(day) {
-                const confirmation = confirm(`${day === 'day1' ? '1日目' : '2日目'}のカウンターをリセットしてもよろしいですか？`);
-                if (confirmation) {
-                    countersRef.child(day).set({ plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 });
-                }
+                // Set up the real-time listener for the new day
+                updateRealTimeListener();
             }
 
             // Attach changeCount and confirmDayChange functions to window for button onclick access
             window.changeCount = changeCount;
             window.confirmDayChange = confirmDayChange;
-
-            // Initialize the reset button visibility
-            document.getElementById('reset-button').style.display = 'inline-block';
 
             // Check Firebase initialization and log
             console.log('Firebase initialized with project:', firebaseConfig.projectId);
