@@ -19,36 +19,9 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Dark Mode Styles */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #121212;
-                color: #ffffff;
-            }
-
-            .counter-container {
-                background: #1e1e1e;
-                color: #ffffff;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-            }
-
-            .totals-container {
-                background-color: #1e1e1e;
-                color: #ffffff;
-            }
-
-            button {
-                background-color: #2d88ff;
-                color: #ffffff;
-            }
-
-            button:hover {
-                background-color: #256cbb;
-            }
-
-            .chart-container {
-                background: #1e1e1e;
-            }
+        .dark-mode {
+            background-color: #222;
+            color: #ddd;
         }
 
         .counters-section {
@@ -78,6 +51,14 @@
 
         .counter-container:hover {
             transform: translateY(-5px);
+        }
+
+        .counter-container h2 {
+            font-size: 1.2em; /* Ensure all titles have the same font size */
+            line-height: 1.5; /* Ensure consistent line height */
+            font-weight: 600; /* Ensure consistent font weight */
+            margin: 0;
+            padding: 5px 0; /* Padding to balance the vertical space */
         }
 
         .count {
