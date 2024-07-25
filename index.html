@@ -334,6 +334,7 @@
                 const currentCountRef = countersRef.child(`${currentDay}/${type}`);
                 currentCountRef.transaction(count => {
                     const newCount = (count || 0) + delta;
+                    console.log('Transaction:', type, newCount);
                     if (newCount >= 0 && newCount <= limits[currentDay][type]) {
                         return newCount;
                     }
