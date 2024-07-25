@@ -29,14 +29,14 @@
             flex-direction: column;
             gap: 20px;
             width: 100%;
-            max-width: 1000px; /* Increased maximum width */
+            max-width: 900px;
         }
 
         #counters {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            grid-gap: 30px; /* Increased grid gap */
-            padding: 30px; /* Increased padding */
+            grid-gap: 20px;
+            padding: 20px;
             width: 100%;
         }
 
@@ -44,7 +44,7 @@
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 25px; /* Increased padding */
+            padding: 15px;
             text-align: center;
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
         }
@@ -54,7 +54,7 @@
         }
 
         .counter-container h2 {
-            font-size: 1.4em; /* Increased font size */
+            font-size: 1.2em; /* Ensure all titles have the same font size */
             line-height: 1.5; /* Ensure consistent line height */
             font-weight: 600; /* Ensure consistent font weight */
             margin: 0;
@@ -62,24 +62,24 @@
         }
 
         .count {
-            font-size: 1.7em; /* Increased font size */
-            margin: 15px 0; /* Increased margin */
+            font-size: 1.5em;
+            margin: 10px 0;
         }
 
         .amount {
-            font-size: 1.2em; /* Increased font size */
+            font-size: 1em;
         }
 
         .button-group {
             display: flex;
             justify-content: center;
-            gap: 15px; /* Increased gap */
-            margin: 15px 0; /* Increased margin */
+            gap: 10px;
+            margin: 10px 0;
         }
 
         button {
-            padding: 16px 28px; /* Increased button size */
-            font-size: 22px; /* Increased font size */
+            padding: 14px 24px; /* Increased button size */
+            font-size: 20px; /* Increased font size */
             border: none;
             border-radius: 8px;
             background-color: #007BFF;
@@ -111,38 +111,38 @@
         .totals-container {
             margin-top: 20px;
             background-color: #ffffff;
-            padding: 20px; /* Increased padding */
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%;
-            max-width: 1000px; /* Increased maximum width */
+            max-width: 900px;
             transition: background-color 0.3s, color 0.3s;
         }
 
         .total-title {
-            font-size: 1.4em; /* Increased font size */
-            margin-bottom: 15px; /* Increased margin */
+            font-size: 1.3em;
+            margin-bottom: 10px;
         }
 
         .total-value {
-            font-size: 1.3em; /* Increased font size */
+            font-size: 1.1em;
         }
 
         .day-select {
-            margin-bottom: 25px; /* Increased margin */
+            margin-bottom: 20px;
             text-align: center;
             width: 100%;
         }
 
         .day-select label {
-            margin-right: 15px; /* Increased margin */
-            font-size: 1.2em; /* Increased font size */
+            margin-right: 10px;
+            font-size: 1em;
         }
 
         .current-day {
-            font-size: 1.7em; /* Increased font size */
-            margin-bottom: 25px; /* Increased margin */
+            font-size: 1.5em;
+            margin-bottom: 20px;
             text-align: center;
             font-weight: bold;
             color: #007BFF;
@@ -154,38 +154,38 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 1000px; /* Increased maximum width */
-            padding: 30px; /* Increased padding */
+            max-width: 900px;
+            padding: 20px;
             box-sizing: border-box;
         }
 
         .chart-container {
             flex: 1;
-            max-width: 450px; /* Increased maximum width */
-            margin: 0 15px; /* Increased margin */
+            max-width: 400px;
+            margin: 0 10px;
             display: flex;
             justify-content: center;
         }
 
         @media (max-width: 768px) {
             #counters {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Adjusted minmax */
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             }
 
             .count {
-                font-size: 1.5em;
-            }
-
-            .amount {
-                font-size: 1.1em;
-            }
-
-            .total-title {
                 font-size: 1.3em;
             }
 
-            .total-value {
+            .amount {
+                font-size: 0.9em;
+            }
+
+            .total-title {
                 font-size: 1.2em;
+            }
+
+            .total-value {
+                font-size: 1em;
             }
 
             .charts-section {
@@ -195,7 +195,7 @@
 
             .chart-container {
                 max-width: 100%;
-                margin-bottom: 25px; /* Increased margin */
+                margin-bottom: 20px;
             }
         }
     </style>
