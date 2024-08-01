@@ -65,7 +65,11 @@
 
         async function startCamera(cameraType, videoElement) {
             const constraints = {
-                video: { facingMode: cameraType }
+                video: {
+                    facingMode: cameraType,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
             };
 
             try {
@@ -74,12 +78,13 @@
                 return stream;
             } catch (err) {
                 console.error('カメラの使用に失敗しました:', err);
+                alert('カメラへのアクセスが失敗しました。ブラウザの設定でカメラの許可を確認してください。');
             }
         }
 
         async function initializeCameras() {
-            frontStream = await startCamera('user', frontCamera);
-            backStream = await startCamera('environment', backCamera);
+            await startCamera('user', frontCamera);
+            await startCamera('environment', backCamera);
         }
 
         function initMap(lat, lng) {
