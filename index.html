@@ -14,6 +14,7 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            overflow: hidden;
         }
         h1 {
             margin-bottom: 20px;
@@ -21,34 +22,59 @@
         }
         #videos {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
             margin-bottom: 20px;
         }
         video {
             border: 2px solid #333;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 320px;
-            height: auto;
             background-color: #000;
             cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+            height: auto;
         }
         #map {
             width: 100%;
-            height: 500px;
+            height: 50vh;
             max-width: 600px;
             border: 2px solid #333;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* メディアクエリ */
+        @media (min-width: 600px) {
+            #videos {
+                flex-wrap: nowrap;
+            }
+            video {
+                width: 320px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            #videos {
+                gap: 20px;
+            }
+            video {
+                width: 320px;
+                height: 240px;
+            }
+            #map {
+                height: 500px;
+            }
         }
     </style>
 </head>
 <body>
     <h1>カメラ映像と位置情報表示</h1>
     <div id="videos">
-        <video id="front-camera" width="320" height="240" autoplay></video>
-        <video id="back-camera" width="320" height="240" autoplay></video>
+        <video id="front-camera" autoplay></video>
+        <video id="back-camera" autoplay></video>
     </div>
     <div id="map"></div>
 
