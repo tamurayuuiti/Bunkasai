@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>リアルタイムカウンター</title>
+    <title>幸せのカステラ屋さん</title>
     <style>
         :root {
             --primary-color: #007BFF;
@@ -101,7 +101,7 @@
         }
 
         .remaining {
-            font-size: 1.2rem;
+            font-size: 5vw;
             color: inherit;
             white-space: nowrap; /* テキストが折り返されないようにする */
         }
@@ -233,9 +233,14 @@
                 padding: 1.5rem;
             }
 
-            .counter-container h2, .count, .remaining, .amount {
-                font-size: 1.5rem; /* フォントサイズ調整 */
-            }
+            .counter-container h2, .count, .amount {
+        font-size: 1.6rem; /* フォントサイズ調整 */
+    }
+
+    .remaining {
+        font-size: 1.25rem; /* 横画面時の残り個数の表示サイズを個別に調整 */
+    }
+}
 
             .count {
                 font-size: 2.2rem;
