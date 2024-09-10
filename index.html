@@ -39,6 +39,17 @@
             color: var(--light-text);
         }
 
+        .day-select {
+            margin: 2rem 0 1.5rem; /* 位置を少し下に調整 */
+            text-align: center;
+            width: 100%;
+        }
+
+        .day-select label {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
         .counters-section {
             display: flex;
             flex-direction: column;
@@ -73,7 +84,7 @@
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
             width: 100%;
             max-width: 300px;
-            height: auto;
+            height: auto; /* 自動で高さを調整するように設定 */
             box-sizing: border-box;
         }
 
@@ -139,17 +150,6 @@
             font-size: 1.3rem;
         }
 
-        .day-select {
-            margin-bottom: 2rem; /* 少し下にずらす */
-            text-align: center;
-            width: 100%;
-        }
-
-        .day-select label {
-            margin-right: 100px;
-            font-size: 1.2rem;
-        }
-
         .current-day {
             font-size: 1.7rem;
             margin-bottom: 1.5rem;
@@ -160,15 +160,13 @@
 
         .charts-section {
             display: flex;
-            flex-direction: row; /* 横並びに配置 */
+            flex-direction: column;
             align-items: center;
             width: 100%;
             max-width: 1200px;
             padding: 1rem;
             box-sizing: border-box;
             margin: 0 auto;
-            justify-content: center; /* 中央に配置 */
-            gap: 1rem; /* グラフ間の間隔 */
         }
 
         .chart-container {
@@ -182,7 +180,7 @@
 
         @media (min-width: 769px) {
             #counters {
-                grid-template-columns: repeat(5, 1fr); /* 横幅が広い場合に5つを横一列に配置 */
+                grid-template-columns: repeat(5, 1fr);
                 grid-gap: 1rem;
                 justify-items: center;
                 justify-content: center;
@@ -201,7 +199,8 @@
             }
 
             .charts-section {
-                flex-direction: row; /* PC用の画面ではグラフを横に配置 */
+                flex-direction: row; /* 横並びに配置 */
+                justify-content: center;
             }
         }
 
@@ -230,7 +229,7 @@
             }
 
             .charts-section {
-                flex-direction: column; /* 縦向きに配置 */
+                flex-direction: row; /* 横並びに配置 */
                 justify-content: center;
             }
 
