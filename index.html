@@ -40,7 +40,7 @@
         }
 
         .day-select {
-            margin: 1.8rem 0 1.5rem; /* 位置を少し下に調整 */
+            margin-bottom: 1.5rem;
             text-align: center;
             width: 100%;
         }
@@ -63,7 +63,7 @@
 
         #counters {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr); /* デフォルトは2列 */
             grid-gap: 1rem;
             padding: 1rem;
             width: 100%;
@@ -84,7 +84,7 @@
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
             width: 100%;
             max-width: 300px;
-            height: auto; /* 自動で高さを調整するように設定 */
+            height: auto;
             box-sizing: border-box;
         }
 
@@ -160,7 +160,7 @@
 
         .charts-section {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 初期設定は縦並び */
             align-items: center;
             width: 100%;
             max-width: 1200px;
@@ -178,9 +178,10 @@
             box-sizing: border-box;
         }
 
-        @media (min-width: 1300px) {
+        @media (min-width: 769px) {
+            /* 横向きやPC用の調整 */
             #counters {
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(5, 1fr); /* 1行に5つ */
                 grid-gap: 1rem;
                 justify-items: center;
                 justify-content: center;
@@ -201,6 +202,11 @@
             .charts-section {
                 flex-direction: row; /* 横並びに配置 */
                 justify-content: center;
+            }
+
+            .chart-container {
+                max-width: 400px; /* 円グラフの最大幅を設定 */
+                margin: 0 5px; /* 円グラフの間隔を調整 */
             }
         }
 
@@ -229,7 +235,7 @@
             }
 
             .charts-section {
-                flex-direction: row; /* 横並びに配置 */
+                flex-direction: column; /* 縦並びに配置 */
                 justify-content: center;
             }
 
