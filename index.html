@@ -68,13 +68,14 @@
             color: #333;
             border-radius: 10px;
             box-shadow: 0 4px 8px var(--box-shadow);
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.2s, background-color 0.3s, color 0.3s;
-            width: 100%;
-            max-width: 300px; /* カウンターの最大幅を設定 */
-            height: 100%; /* カウンターの高さをボタンの高さに対応させる */
-            box-sizing: border-box;
+           .counter-container {
+    padding: 1rem; /* パディングを少し減らす */
+    text-align: center;
+    width: 100%;
+    max-width: 250px; /* 必要に応じて最大幅を調整 */
+    height: auto; /* 高さを自動調整に変更 */
+    box-sizing: border-box;
+    margin: 0 auto; /* コンテンツを中央に配置 */
         }
 
         .dark-mode .counter-container {
