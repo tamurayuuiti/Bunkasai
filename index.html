@@ -73,7 +73,7 @@
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
             width: 100%;
             max-width: 300px;
-            height: auto; /* 自動で高さを調整するように設定 */
+            height: auto;
             box-sizing: border-box;
         }
 
@@ -140,7 +140,7 @@
         }
 
         .day-select {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem; /* 少し下にずらす */
             text-align: center;
             width: 100%;
         }
@@ -160,13 +160,15 @@
 
         .charts-section {
             display: flex;
-            flex-direction: column;
+            flex-direction: row; /* 横並びに配置 */
             align-items: center;
             width: 100%;
             max-width: 1200px;
             padding: 1rem;
             box-sizing: border-box;
             margin: 0 auto;
+            justify-content: center; /* 中央に配置 */
+            gap: 1rem; /* グラフ間の間隔 */
         }
 
         .chart-container {
@@ -180,7 +182,7 @@
 
         @media (min-width: 769px) {
             #counters {
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(5, 1fr); /* 横幅が広い場合に5つを横一列に配置 */
                 grid-gap: 1rem;
                 justify-items: center;
                 justify-content: center;
@@ -196,6 +198,10 @@
 
             .remaining {
                 font-size: 1.25rem;
+            }
+
+            .charts-section {
+                flex-direction: row; /* PC用の画面ではグラフを横に配置 */
             }
         }
 
@@ -224,7 +230,7 @@
             }
 
             .charts-section {
-                flex-direction: column;
+                flex-direction: column; /* 縦向きに配置 */
                 justify-content: center;
             }
 
