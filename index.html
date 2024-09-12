@@ -39,17 +39,6 @@
             color: var(--light-text);
         }
 
-        .day-select {
-            margin: 1.4rem 0 1.3rem; /* 位置を少し下に調整 */
-            text-align: center;
-            width: 100%;
-        }
-
-        .day-select label {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-
         .counters-section {
             display: flex;
             flex-direction: column;
@@ -63,7 +52,7 @@
 
         #counters {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* デフォルトは2列 */
+            grid-template-columns: repeat(2, 1fr);
             grid-gap: 1rem;
             padding: 1rem;
             width: 100%;
@@ -84,7 +73,7 @@
             transition: transform 0.2s, background-color 0.3s, color 0.3s;
             width: 100%;
             max-width: 300px;
-            height: auto;
+            height: 100%;
             box-sizing: border-box;
         }
 
@@ -150,6 +139,17 @@
             font-size: 1.3rem;
         }
 
+        .day-select {
+            margin: 1.4rem 0 1.3rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .day-select label {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
         .current-day {
             font-size: 1.7rem;
             margin-bottom: 1.5rem;
@@ -159,9 +159,8 @@
         }
 
         @media (min-width: 769px) {
-            /* 横向きやPC用の調整 */
             #counters {
-                grid-template-columns: repeat(5, 1fr); /* 1行に5つ */
+                grid-template-columns: repeat(5, 1fr);
                 grid-gap: 1rem;
                 justify-items: center;
                 justify-content: center;
@@ -172,12 +171,13 @@
             }
 
             .counter-container h2, .count, .amount {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
             }
 
             .remaining {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
             }
+        }
 
         @media (max-width: 768px) {
             .portrait #counters {
@@ -194,8 +194,8 @@
                 grid-template-columns: repeat(3, 1fr);
                 grid-template-rows: auto auto;
                 grid-template-areas:
-                  "item1 item2 item3"
-                  "item4 item5 .";
+                    "item1 item2 item3"
+                    "item4 item5 .";
             }
 
             .counter-container {
@@ -208,9 +208,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Include Chart.js and the data labels plugin from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
     <div class="day-select">
@@ -261,157 +258,168 @@
             <div class="total-value" id="total-amount">総金額: 0 円</div>
         </div>
     </div>
-    <div class="charts-section">
-        <div class="chart-container">
-            <canvas id="count-pie-chart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="value-pie-chart"></canvas>
-        </div>
-    </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const firebaseConfig = {
-                apiKey: "AIzaSyDfmjWjPl786cVBXzqlsiZsS4MUFbwrNNM",
-                authDomain: "school-festival-e4c8d.firebaseapp.com",
-                databaseURL: "https://school-festival-e4c8d-default-rtdb.firebaseio.com",
-                projectId: "school-festival-e4c8d",
-                storageBucket: "school-festival-e4c8d.appspot.com",
-                messagingSenderId: "658868728855",
-                appId: "1:658868728855:web:8d7497c6838f5a42d21852"
+    document.addEventListener('DOMContentLoaded', function() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfmjWjPl786cVBXzqlsiZsS4MUFbwrNNM",
+            authDomain: "school-festival-e4c8d.firebaseapp.com",
+            databaseURL: "https://school-festival-e4c8d-default-rtdb.firebaseio.com",
+            projectId: "school-festival-e4c8d",
+            storageBucket: "school-festival-e4c8d.appspot.com",
+            messagingSenderId: "658868728855",
+            appId: "1:658868728855:web:8d7497c6838f5a42d21852"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const countersRef = database.ref('counters');
+
+        countersRef.once('value').then(snapshot => {
+            if (!snapshot.exists()) {
+                countersRef.set({
+                    day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
+                    day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
+                });
+            }
+        });
+
+        let currentDay = 'day1';
+        const limits = {
+            day1: { plain: 30, choco: 100, strawberry: 100, matcha: 50, jdk: 20 },
+            day2: { plain: 30, choco: 150, strawberry: 150, matcha: 40, jdk: 30 }
+        };
+
+        const values = {
+            plain: 100,
+            choco: 100,
+            strawberry: 100,
+            matcha: 100,
+            jdk: 200
+        };
+
+        function updateUI(counters) {
+            if (!counters) return;
+            for (let type in counters) {
+                const count = parseInt(counters[type], 10) || 0;
+                const remaining = limits[currentDay][type] - count;
+                document.getElementById(`${type}-count`).innerText = `${count}/${limits[currentDay][type]}`;
+                document.getElementById(`${type}-remaining`).innerText = remaining === 0 ? '売り切れ' : `残り: ${remaining} 個`;
+                document.getElementById(`${type}-amount`).innerText = `${count * values[type]} 円`;
+            }
+            updateTotals(counters);
+        }
+
+        function logCountChange(type, delta, newCount) {
+            const logRef = database.ref('logs').push();
+
+            const timestamp = new Date();
+            const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')} ${String(timestamp.getHours()).padStart(2, '0')}:${String(timestamp.getMinutes()).padStart(2, '0')}:${String(timestamp.getSeconds()).padStart(2, '0')}`;
+
+            const logEntry = {
+                type: type,
+                change: delta > 0 ? 'increment' : 'decrement',
+                amountChanged: delta,
+                newCount: newCount,
+                timestamp: formattedTimestamp
             };
 
-            firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
-            const countersRef = database.ref('counters');
+            logRef.set(logEntry)
+                .then(() => console.log('Log entry saved successfully:', logEntry))
+                .catch(error => console.error('Failed to save log entry:', error));
+        }
 
-            countersRef.once('value').then(snapshot => {
-                if (!snapshot.exists()) {
-                    countersRef.set({
-                        day1: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 },
-                        day2: { plain: 0, choco: 0, strawberry: 0, matcha: 0, jdk: 0 }
-                    });
+        function changeCount(type, delta) {
+            const currentCountRef = countersRef.child(`${currentDay}/${type}`);
+            currentCountRef.transaction(count => {
+                const newCount = (parseInt(count, 10) || 0) + delta;
+                if (newCount >= 0 && newCount <= limits[currentDay][type]) {
+                    logCountChange(type, delta, newCount);
+                    return newCount;
+                }
+                return count;
+            });
+        }
+
+        function updateRealTimeListener() {
+            countersRef.child(currentDay).on('value', snapshot => {
+                if (snapshot.exists()) {
+                    updateUI(snapshot.val());
                 }
             });
+        }
 
-            let currentDay = 'day1';
-            const limits = {
-                day1: { plain: 30, choco: 100, strawberry: 100, matcha: 50, jdk: 20 },
-                day2: { plain: 30, choco: 150, strawberry: 150, matcha: 40, jdk: 30 }
-            };
+        updateRealTimeListener();
 
-            const values = {
-                plain: 100,
-                choco: 100,
-                strawberry: 100,
-                matcha: 100,
-                jdk: 200
-            };
+        function updateTotals(counters) {
+            const totalCount = Object.values(counters).reduce((sum, count) => sum + (parseInt(count, 10) || 0), 0);
+            const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((parseInt(count, 10) || 0) * values[key]), 0);
 
-            function updateUI(counters) {
-                if (!counters) return;
-                for (let type in counters) {
-                    const count = parseInt(counters[type], 10) || 0;
-                    const remaining = limits[currentDay][type] - count;
-                    document.getElementById(`${type}-count`).innerText = `${count}/${limits[currentDay][type]}`;
-                    document.getElementById(`${type}-remaining`).innerText = remaining === 0 ? '売り切れ' : `残り: ${remaining} 個`;
-                    document.getElementById(`${type}-amount`).innerText = `${count * values[type]} 円`;
-                }
-                updateTotals(counters);
-                updatePieCharts(counters);
-            }
+            document.getElementById('total-count').innerText = `総数量: ${totalCount} 個`;
+            document.getElementById('total-amount').innerText = `総金額: ${totalAmount} 円`;
+        }
 
-            function changeCount(type, delta) {
-                const currentCountRef = countersRef.child(`${currentDay}/${type}`);
-                currentCountRef.transaction(count => {
-                    const newCount = (parseInt(count, 10) || 0) + delta;
-                    if (newCount >= 0 && newCount <= limits[currentDay][type]) {
-                        return newCount;
-                    }
-                    return count;
-                });
-            }
-
-            function updateRealTimeListener() {
-                countersRef.child(currentDay).on('value', snapshot => {
-                    if (snapshot.exists()) {
-                        updateUI(snapshot.val());
-                    }
-                });
-            }
-
+        function confirmDayChange(selectedDay) {
+            countersRef.child(currentDay).off('value');
+            currentDay = selectedDay === '1' ? 'day1' : 'day2';
+            document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
+            countersRef.child(currentDay).once('value').then(snapshot => {
+                updateUI(snapshot.val() || {});
+            });
             updateRealTimeListener();
+        }
 
-            function updateTotals(counters) {
-                const totalCount = Object.values(counters).reduce((sum, count) => sum + (parseInt(count, 10) || 0), 0);
-                const totalAmount = Object.entries(counters).reduce((sum, [key, count]) => sum + ((parseInt(count, 10) || 0) * values[key]), 0);
-
-                document.getElementById('total-count').innerText = `総数量: ${totalCount} 個`;
-                document.getElementById('total-amount').innerText = `総金額: ${totalAmount} 円`;
-            }
-
-            function confirmDayChange(selectedDay) {
-                countersRef.child(currentDay).off('value');
-                currentDay = selectedDay === '1' ? 'day1' : 'day2';
-                document.getElementById('current-day').innerText = `現在の設定: ${currentDay === 'day1' ? '1日目' : '2日目'}`;
-                countersRef.child(currentDay).once('value').then(snapshot => {
-                    updateUI(snapshot.val() || {});
-                });
-                updateRealTimeListener();
-            }
-
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            function applyTheme(e) {
-                if (e.matches) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-            }
-            mediaQuery.addEventListener('change', applyTheme);
-            applyTheme(mediaQuery);
-
-            function getDeviceType() {
-                const ua = navigator.userAgent;
-                if (/Mobi|Android/i.test(ua)) {
-                    return 'mobile';
-                }
-                return 'desktop';
-            }
-
-            const deviceType = getDeviceType();
-            const countersElement = document.getElementById('counters');
-
-            if (deviceType === 'mobile') {
-                countersElement.classList.add('mobile');
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        function applyTheme(e) {
+            if (e.matches) {
+                document.body.classList.add('dark-mode');
             } else {
-                countersElement.classList.add('desktop');
+                document.body.classList.remove('dark-mode');
             }
+        }
+        mediaQuery.addEventListener('change', applyTheme);
+        applyTheme(mediaQuery);
 
-            function updateOrientation() {
-                const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-                if (isPortrait) {
-                    countersElement.classList.remove('landscape');
-                    countersElement.classList.add('portrait');
-                } else {
-                    countersElement.classList.remove('portrait');
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/Mobi|Android/i.test(ua)) {
+                return 'mobile';
+            }
+            return 'desktop';
+        }
+
+        const deviceType = getDeviceType();
+        const countersElement = document.getElementById('counters');
+
+        if (deviceType === 'mobile') {
+            countersElement.classList.add('mobile');
+        } else {
+            countersElement.classList.add('desktop');
+        }
+
+        function updateOrientation() {
+            const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+            if (isPortrait) {
+                countersElement.classList.remove('landscape');
+                countersElement.classList.add('portrait');
+            } else {
+                countersElement.classList.remove('portrait');
+                countersElement.classList.add('landscape');
+                if (deviceType === 'mobile') {
                     countersElement.classList.add('landscape');
-                    if (deviceType === 'mobile') {
-                        countersElement.classList.add('landscape');
-                    }
                 }
             }
+        }
 
-            window.addEventListener('orientationchange', updateOrientation);
-            window.addEventListener('resize', updateOrientation);
+        window.addEventListener('orientationchange', updateOrientation);
+        window.addEventListener('resize', updateOrientation);
 
-            updateOrientation();
+        updateOrientation();
 
-            window.changeCount = changeCount;
-            window.confirmDayChange = confirmDayChange;
+        window.changeCount = changeCount;
+        window.confirmDayChange = confirmDayChange;
 
-            console.log('Firebase initialized with project:', firebaseConfig.projectId);
-        });
+        console.log('Firebase initialized with project:', firebaseConfig.projectId);
+    });
     </script>
 </body>
 </html>
