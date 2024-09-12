@@ -40,7 +40,7 @@
         }
 
         .day-select {
-            margin: 1.4rem 0 1.3rem;
+            margin: 1.4rem 0 1.3rem; /* 位置を少し下に調整 */
             text-align: center;
             width: 100%;
         }
@@ -63,7 +63,7 @@
 
         #counters {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr); /* デフォルトは2列 */
             grid-gap: 1rem;
             padding: 1rem;
             width: 100%;
@@ -160,14 +160,13 @@
 
         .charts-section {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 初期設定は縦並び */
             align-items: center;
             width: 100%;
             max-width: 1200px;
             padding: 1rem;
             box-sizing: border-box;
             margin: 0 auto;
-            overflow-x: auto; /* 横スクロールを有効にする */
         }
 
         .chart-container {
@@ -180,8 +179,9 @@
         }
 
         @media (min-width: 769px) {
+            /* 横向きやPC用の調整 */
             #counters {
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(5, 1fr); /* 1行に5つ */
                 grid-gap: 1rem;
                 justify-items: center;
                 justify-content: center;
@@ -200,13 +200,13 @@
             }
 
             .charts-section {
-                flex-direction: column;
+                flex-direction: row; /* 横並びに配置 */
                 justify-content: center;
             }
 
             .chart-container {
-                max-width: 400px;
-                margin: 0 5px;
+                max-width: 400px; /* 円グラフの最大幅を設定 */
+                margin: 0 5px; /* 円グラフの間隔を調整 */
             }
         }
 
@@ -235,7 +235,7 @@
             }
 
             .charts-section {
-                flex-direction: column;
+                flex-direction: column; /* 縦並びに配置 */
                 justify-content: center;
             }
 
@@ -309,10 +309,6 @@
         <div class="chart-container">
             <canvas id="value-pie-chart"></canvas>
         </div>
-        <!-- 折れ線グラフのキャンバスを追加 -->
-        <div class="chart-container" style="width: 1000px; overflow-x: auto;">
-            <canvas id="count-line-chart"></canvas>
-        </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -329,7 +325,6 @@
             firebase.initializeApp(firebaseConfig);
             const database = firebase.database();
             const countersRef = database.ref('counters');
-            const logsRef = database.ref('logs');
 
             countersRef.once('value').then(snapshot => {
                 if (!snapshot.exists()) {
@@ -372,29 +367,10 @@
                 currentCountRef.transaction(count => {
                     const newCount = (parseInt(count, 10) || 0) + delta;
                     if (newCount >= 0 && newCount <= limits[currentDay][type]) {
-                        logCountChange(type, delta, newCount); // 変更をログに追加
                         return newCount;
                     }
                     return count;
                 });
-            }
-
-            function logCountChange(type, delta, newCount) {
-                const logRef = logsRef.push();
-                const timestamp = new Date();
-                const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')} ${String(timestamp.getHours()).padStart(2, '0')}:${String(timestamp.getMinutes()).padStart(2, '0')}:${String(timestamp.getSeconds()).padStart(2, '0')}`;
-
-                const logEntry = {
-                    type: type,
-                    change: delta > 0 ? 'increment' : 'decrement',
-                    amountChanged: delta,
-                    newCount: newCount,
-                    timestamp: formattedTimestamp
-                };
-
-                logRef.set(logEntry)
-                    .then(() => console.log('Log entry saved successfully:', logEntry))
-                    .catch(error => console.error('Failed to save log entry:', error));
             }
 
             function updateRealTimeListener() {
@@ -487,79 +463,6 @@
                 });
                 updateRealTimeListener();
             }
-
-            function createLineChart() {
-                const ctx = document.getElementById('count-line-chart').getContext('2d');
-
-                // ログデータを取得して、折れ線グラフ用のデータを生成
-                logsRef.once('value', snapshot => {
-                    const logs = snapshot.val();
-                    if (!logs) return;
-
-                    const chartData = {
-                        labels: [],
-                        datasets: [
-                            { label: 'プレーン', data: [], borderColor: '#007BFF', fill: false },
-                            { label: 'チョコ', data: [], borderColor: '#8B4513', fill: false },
-                            { label: 'いちご', data: [], borderColor: '#FF6347', fill: false },
-                            { label: '抹茶', data: [], borderColor: '#3CB371', fill: false },
-                            { label: 'JDK', data: [], borderColor: '#FFD700', fill: false }
-                        ]
-                    };
-
-                    const sortedLogs = Object.entries(logs).sort((a, b) => new Date(a[1].timestamp) - new Date(b[1].timestamp));
-                    sortedLogs.forEach(([key, log]) => {
-                        const date = new Date(log.timestamp);
-                        if (!chartData.labels.includes(date)) {
-                            chartData.labels.push(date);
-                        }
-
-                        const targetDataset = chartData.datasets.find(dataset => dataset.label === log.type);
-                        if (targetDataset) {
-                            targetDataset.data.push({ x: date, y: log.newCount });
-                        }
-                    });
-
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: chartData,
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'カウンターの増減推移'
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    type: 'time',
-                                    time: {
-                                        unit: 'minute',
-                                        stepSize: 5,
-                                        displayFormats: {
-                                            minute: 'yyyy-MM-dd HH:mm'
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: '時間'
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: '個数'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-
-            createLineChart();
 
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             function applyTheme(e) {
